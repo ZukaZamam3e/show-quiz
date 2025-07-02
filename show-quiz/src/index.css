@@ -51,6 +51,12 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 } */
 
+.unselectable-text {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10+ */
+  user-select: none; /* Standard syntax */
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

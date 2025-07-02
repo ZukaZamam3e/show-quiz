@@ -23,12 +23,28 @@ export const ManagePlayerCard = (props: ManagePlayerCardProps) => {
     cursor: "pointer",
     borderColor: borderColor,
     borderWidth: hasBorder ? "2px" : "1px",
+    _webkit_user_select: "none" /* Safari */,
+    _moz_user_select: "none" /* Firefox */,
+    _ms_user_select: "none" /* IE10+/Edge */,
+    user_select: "none" /* Standard */,
+  };
+
+  const typographyStyle = {
+    _webkit_user_select: "none" /* Safari */,
+    _moz_user_select: "none" /* Firefox */,
+    _ms_user_select: "none" /* IE10+/Edge */,
+    user_select: "none" /* Standard */,
   };
 
   return (
     <Card sx={cardStyle} onClick={() => props.onSelectPlayer(props.player.id)}>
-      <Typography variant="h6" component="h2" style={{ margin: "5px" }}>
-        {props.player.name} - {props.player.score} points
+      <Typography
+        className="unselectable-text"
+        variant="h6"
+        component="h2"
+        style={{ margin: "5px" }}
+      >
+        {props.player.name} - {props.player.score} pts
       </Typography>
     </Card>
   );

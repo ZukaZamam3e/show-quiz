@@ -13,6 +13,7 @@ export const HostPage = () => {
     useState<CategoryModel[]>(defaultCategories());
 
   const [players, setPlayers] = useState<PlayerModel[]>(defaultPlayers());
+  const [turnOrder, setTurnOrder] = useState<number>(1);
 
   return (
     <div>
@@ -27,9 +28,18 @@ export const HostPage = () => {
           }}
         >
           <div style={{ gridColumn: "span 3" }}>
-            <ManagePlayers players={players} updatePlayers={setPlayers} />
+            <ManagePlayers
+              players={players}
+              updatePlayers={setPlayers}
+              turnOrder={turnOrder}
+              updateTurnOrder={setTurnOrder}
+            />
           </div>
-          <TurnOrder players={players} updatePlayers={setPlayers} />
+          <TurnOrder
+            players={players}
+            updatePlayers={setPlayers}
+            turnOrder={turnOrder}
+          />
           <ScoreBoard players={players} />
         </Box>
       </div>

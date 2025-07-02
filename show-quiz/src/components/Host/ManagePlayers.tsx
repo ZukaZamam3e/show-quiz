@@ -1,4 +1,4 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, Stack } from "@mui/material";
 import { PlayerModel } from "../../models/PlayerModel";
 import { ManagePlayerCard } from "./ManagePlayerCard";
 import { useState } from "react";
@@ -6,7 +6,9 @@ import { OAInput } from "../Common/OAInput";
 
 interface ManagePlayersProps {
   players: PlayerModel[];
+  turnOrder: number;
   updatePlayers: (players: PlayerModel[]) => void;
+  updateTurnOrder: (turnOrder: number) => void;
 }
 
 export const ManagePlayers = (props: ManagePlayersProps) => {
@@ -32,38 +34,53 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
   };
 
   const handleNext = () => {
-    const updatedPlayers = [...props.players];
+    let updatedTurnOrder = props.turnOrder + 1;
 
-    if (updatedPlayers.length === 0) return;
-
-    for (let i = 0; i < updatedPlayers.length; i++) {
-      const player = updatedPlayers[i];
-      player.turnOrder -= 1;
-
-      if (player.turnOrder < 1) {
-        player.turnOrder = updatedPlayers.length;
-      }
+    if (updatedTurnOrder > props.players.length) {
+      updatedTurnOrder = 1;
     }
 
-    props.updatePlayers(updatedPlayers);
+    props.updateTurnOrder(updatedTurnOrder);
+    // const updatedPlayers = [...props.players];
+
+    // if (updatedPlayers.length === 0) return;
+
+    // for (let i = 0; i < updatedPlayers.length; i++) {
+    //   const player = updatedPlayers[i];
+    //   player.turnOrder -= 1;
+
+    //   if (player.turnOrder < 1) {
+    //     player.turnOrder = updatedPlayers.length;
+    //   }
+    // }
+
+    // props.updatePlayers(updatedPlayers);
     setSelectedPlayerId(-1);
   };
 
   const handlePrev = () => {
-    const updatedPlayers = [...props.players];
+    let updatedTurnOrder = props.turnOrder - 1;
 
-    if (updatedPlayers.length === 0) return;
-
-    for (let i = 0; i < updatedPlayers.length; i++) {
-      const player = updatedPlayers[i];
-      player.turnOrder += 1;
-
-      if (player.turnOrder > updatedPlayers.length) {
-        player.turnOrder = 1;
-      }
+    if (updatedTurnOrder < 1) {
+      updatedTurnOrder = props.players.length;
     }
 
-    props.updatePlayers(updatedPlayers);
+    props.updateTurnOrder(updatedTurnOrder);
+
+    // const updatedPlayers = [...props.players];
+
+    // if (updatedPlayers.length === 0) return;
+
+    // for (let i = 0; i < updatedPlayers.length; i++) {
+    //   const player = updatedPlayers[i];
+    //   player.turnOrder += 1;
+
+    //   if (player.turnOrder > updatedPlayers.length) {
+    //     player.turnOrder = 1;
+    //   }
+    // }
+
+    // props.updatePlayers(updatedPlayers);
     setSelectedPlayerId(-1);
   };
 
@@ -88,16 +105,16 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
     props.updatePlayers(updatedPlayers);
   };
 
-  const handleAddPoints = () => {
+  const handleAddPoints = (points: number) => {
     const updatedPlayers = props.players.map((player) => {
       if (selectedPlayerId === -1) {
-        if (player.turnOrder === 1) {
-          return { ...player, score: player.score + pointsToAward };
+        if (player.turnOrder === props.turnOrder) {
+          return { ...player, score: player.score + points };
         } else {
           return player;
         }
       } else if (player.id === selectedPlayerId) {
-        return { ...player, score: player.score + pointsToAward };
+        return { ...player, score: player.score + points };
       } else {
         return player;
       }
@@ -110,6 +127,8 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
     (a, b) => a.turnOrder - b.turnOrder
   );
 
+  const pointIncrements = [10, 20, 30, 40, 50];
+
   return (
     <div>
       <h2>Manage Players</h2>
@@ -121,33 +140,70 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
           gridTemplateColumns: "1fr 1fr 1fr",
         }}
       >
-        {orderedPlayers.map((player) => (
-          <ManagePlayerCard
-            player={player}
-            key={player.id}
-            selected={player.id === selectedPlayerId}
-            turn={player.turnOrder == 1}
-            onSelectPlayer={handleSelectPlayer}
-          />
-        ))}
-      </Box>
-      <div>
-        <Button
-          type="button"
-          variant="contained"
-          onClick={handlePrev}
-          disabled={props.players.length === 0}
+        <Box
+          sx={{
+            gridColumn: "span 2",
+            display: "grid",
+            columnGap: "10px",
+            rowGap: "10px",
+            gridTemplateColumns: "1fr 1fr 1fr",
+          }}
         >
-          Previous Turn
-        </Button>
-        <Button
-          type="button"
-          variant="contained"
-          onClick={handleNext}
-          disabled={props.players.length === 0}
-        >
-          Next Turn
-        </Button>
+          {props.players.map((player) => (
+            <ManagePlayerCard
+              player={player}
+              key={player.id}
+              selected={player.id === selectedPlayerId}
+              turn={player.turnOrder == props.turnOrder}
+              onSelectPlayer={handleSelectPlayer}
+            />
+          ))}
+        </Box>
+        <Box>
+          <Stack direction={"row"} spacing={2}>
+            <Button
+              type="button"
+              variant="contained"
+              onClick={handlePrev}
+              disabled={props.players.length === 0}
+            >
+              Previous Turn
+            </Button>
+            <Button
+              type="button"
+              variant="contained"
+              onClick={handleNext}
+              disabled={props.players.length === 0}
+            >
+              Next Turn
+            </Button>
+          </Stack>
+          <Stack direction={"row"} spacing={2} sx={{ marginTop: "10px" }}>
+            {pointIncrements.map((increment) => (
+              <Button
+                key={increment}
+                type="button"
+                variant="contained"
+                onClick={() => handleAddPoints(increment)}
+              >
+                +{increment}
+              </Button>
+            ))}
+          </Stack>
+          <Stack direction={"row"} spacing={2} sx={{ marginTop: "10px" }}>
+            {pointIncrements.map((increment) => (
+              <Button
+                key={increment}
+                type="button"
+                variant="contained"
+                onClick={() => handleAddPoints(increment * -1)}
+              >
+                -{increment}
+              </Button>
+            ))}
+          </Stack>
+        </Box>
+        {/* <Stack direction={"row"} spacing={2}>
         <Button
           type="button"
           variant="contained"
@@ -170,7 +226,8 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
         >
           Add Points
         </Button>
-      </div>
+      </Stack> */}
+      </Box>
       <button onClick={handleAddPlayer}>Add Player</button>
     </div>
   );
