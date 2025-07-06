@@ -6,9 +6,18 @@ import { CategoryGroup } from "./CategoryGroup";
 interface CategoryProps {
   category: CategoryModel;
   enabled: boolean;
+  onGetUnRevealedQuestion: (
+    showName: string,
+    score: number,
+    questionId?: number
+  ) => void;
 }
 
-export const Category = ({ category, enabled }: CategoryProps) => {
+export const Category = ({
+  category,
+  enabled,
+  onGetUnRevealedQuestion,
+}: CategoryProps) => {
   const cardStyle = {
     position: "relative",
   };
@@ -28,8 +37,14 @@ export const Category = ({ category, enabled }: CategoryProps) => {
     const existingGroup = acc.find((group) => group.points === question.score);
     if (existingGroup) {
       existingGroup.count += 1;
+      existingGroup.questions.push(question);
     } else {
-      acc.push({ points: question.score, count: 1 });
+      acc.push({
+        showName: question.showName,
+        questions: [question],
+        points: question.score,
+        count: 1,
+      });
     }
     return acc;
   }, [] as CategoryGroupModel[]);
@@ -47,7 +62,11 @@ export const Category = ({ category, enabled }: CategoryProps) => {
         <CardMedia component="img" image={category.imgUrl} />
       </Card>
       {questionGroups.map((group) => (
-        <CategoryGroup group={group} enabled={enabled} />
+        <CategoryGroup
+          group={group}
+          enabled={enabled}
+          onGetUnRevealedQuestion={onGetUnRevealedQuestion}
+        />
       ))}
     </div>
   );

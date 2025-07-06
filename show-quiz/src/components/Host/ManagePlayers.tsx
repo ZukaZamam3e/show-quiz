@@ -1,19 +1,23 @@
 import { Box, Button, Stack } from "@mui/material";
 import { PlayerModel } from "../../models/PlayerModel";
 import { ManagePlayerCard } from "./ManagePlayerCard";
-import { useState } from "react";
-import { OAInput } from "../Common/OAInput";
+import { useRef, useState } from "react";
+import { OATextField } from "../Common/OATextField";
 
 interface ManagePlayersProps {
   players: PlayerModel[];
   turnOrder: number;
+  selectedPlayerId: number;
+  onSelectPlayer: (playerId: number) => void;
+  onAddPoints: (points: number) => void;
   updatePlayers: (players: PlayerModel[]) => void;
   updateTurnOrder: (turnOrder: number) => void;
+  pointIncrements: number[];
 }
 
 export const ManagePlayers = (props: ManagePlayersProps) => {
-  const [selectedPlayerId, setSelectedPlayerId] = useState<number>(-1);
   const [pointsToAward, setPointsToAward] = useState<number>(0); // State to hold points to subtract
+  const nameRef = useRef<HTMLInputElement>(null);
 
   const handleAddPlayer = () => {
     const newPlayer: PlayerModel = {
@@ -26,10 +30,14 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
   };
 
   const handleSelectPlayer = (playerId: number) => {
-    if (selectedPlayerId === playerId) {
-      setSelectedPlayerId(-1);
+    if (props.selectedPlayerId === playerId) {
+      handleResetSelectedPlayer();
     } else {
-      setSelectedPlayerId(playerId);
+      props.onSelectPlayer(playerId);
+      const player = props.players.find((m) => m.id == playerId);
+      if (!!nameRef && !!nameRef.current && !!player) {
+        nameRef.current.value = player.name;
+      }
     }
   };
 
@@ -41,21 +49,7 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
     }
 
     props.updateTurnOrder(updatedTurnOrder);
-    // const updatedPlayers = [...props.players];
-
-    // if (updatedPlayers.length === 0) return;
-
-    // for (let i = 0; i < updatedPlayers.length; i++) {
-    //   const player = updatedPlayers[i];
-    //   player.turnOrder -= 1;
-
-    //   if (player.turnOrder < 1) {
-    //     player.turnOrder = updatedPlayers.length;
-    //   }
-    // }
-
-    // props.updatePlayers(updatedPlayers);
-    setSelectedPlayerId(-1);
+    handleResetSelectedPlayer();
   };
 
   const handlePrev = () => {
@@ -66,22 +60,14 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
     }
 
     props.updateTurnOrder(updatedTurnOrder);
+    handleResetSelectedPlayer();
+  };
 
-    // const updatedPlayers = [...props.players];
-
-    // if (updatedPlayers.length === 0) return;
-
-    // for (let i = 0; i < updatedPlayers.length; i++) {
-    //   const player = updatedPlayers[i];
-    //   player.turnOrder += 1;
-
-    //   if (player.turnOrder > updatedPlayers.length) {
-    //     player.turnOrder = 1;
-    //   }
-    // }
-
-    // props.updatePlayers(updatedPlayers);
-    setSelectedPlayerId(-1);
+  const handleResetSelectedPlayer = () => {
+    props.onSelectPlayer(-1);
+    if (!!nameRef && !!nameRef.current) {
+      nameRef.current.value = "";
+    }
   };
 
   const handleChangePointsToAward = (
@@ -97,7 +83,7 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
 
   const handleSubtractPoints = () => {
     const updatedPlayers = props.players.map((player) => {
-      if (player.id === selectedPlayerId) {
+      if (player.id === props.selectedPlayerId) {
         return { ...player, score: player.score - pointsToAward };
       }
       return player;
@@ -106,15 +92,13 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
   };
 
   const handleAddPoints = (points: number) => {
+    props.onAddPoints(points);
+  };
+
+  const handleChangeName = (e: any) => {
     const updatedPlayers = props.players.map((player) => {
-      if (selectedPlayerId === -1) {
-        if (player.turnOrder === props.turnOrder) {
-          return { ...player, score: player.score + points };
-        } else {
-          return player;
-        }
-      } else if (player.id === selectedPlayerId) {
-        return { ...player, score: player.score + points };
+      if (player.id === props.selectedPlayerId) {
+        return { ...player, name: e.target.value };
       } else {
         return player;
       }
@@ -126,8 +110,6 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
   const orderedPlayers = [...props.players].sort(
     (a, b) => a.turnOrder - b.turnOrder
   );
-
-  const pointIncrements = [10, 20, 30, 40, 50];
 
   return (
     <div>
@@ -153,7 +135,7 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
             <ManagePlayerCard
               player={player}
               key={player.id}
-              selected={player.id === selectedPlayerId}
+              selected={player.id === props.selectedPlayerId}
               turn={player.turnOrder == props.turnOrder}
               onSelectPlayer={handleSelectPlayer}
             />
@@ -179,7 +161,7 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
             </Button>
           </Stack>
           <Stack direction={"row"} spacing={2} sx={{ marginTop: "10px" }}>
-            {pointIncrements.map((increment) => (
+            {props.pointIncrements.map((increment) => (
               <Button
                 key={increment}
                 type="button"
@@ -191,7 +173,7 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
             ))}
           </Stack>
           <Stack direction={"row"} spacing={2} sx={{ marginTop: "10px" }}>
-            {pointIncrements.map((increment) => (
+            {props.pointIncrements.map((increment) => (
               <Button
                 key={increment}
                 type="button"
@@ -202,33 +184,19 @@ export const ManagePlayers = (props: ManagePlayersProps) => {
               </Button>
             ))}
           </Stack>
+          <Stack direction={"row"} spacing={2} sx={{ marginTop: "10px" }}>
+            <Button type="button" variant="contained" onClick={handleAddPlayer}>
+              Add Player
+            </Button>
+            <OATextField
+              ref={nameRef}
+              name="name"
+              onChange={handleChangeName}
+              enabled={props.selectedPlayerId !== -1}
+            />
+          </Stack>
         </Box>
-        {/* <Stack direction={"row"} spacing={2}>
-        <Button
-          type="button"
-          variant="contained"
-          onClick={handleSubtractPoints}
-          disabled={props.players.length === 0}
-        >
-          Subtract Points
-        </Button>
-        <OAInput
-          name="pointsToAward" // Name of the input field
-          label="Points"
-          defaultValue={pointsToAward}
-          onChange={handleChangePointsToAward} // Function to handle input change
-        />
-        <Button
-          type="button"
-          variant="contained"
-          onClick={handleAddPoints}
-          disabled={props.players.length === 0}
-        >
-          Add Points
-        </Button>
-      </Stack> */}
       </Box>
-      <button onClick={handleAddPlayer}>Add Player</button>
     </div>
   );
 };
