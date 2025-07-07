@@ -11,10 +11,11 @@ import {
   CategoryQuestionModel,
   defaultQuestion,
 } from "../../models/CategoryQuestionModel";
+import { UploadCategories } from "./UploadCategories";
 
 export const HostPage = () => {
-  const [categories, setCategories] =
-    useState<CategoryModel[]>(defaultCategories());
+  const [categories, setCategories] = useState<CategoryModel[]>([]);
+  // useState<CategoryModel[]>(defaultCategories());
 
   const [players, setPlayers] = useState<PlayerModel[]>(defaultPlayers());
   const [selectedPlayerId, setSelectedPlayerId] = useState<number>(-1);
@@ -159,38 +160,45 @@ export const HostPage = () => {
     </Box>
   );
 
-  return (
-    <div>
-      {categoryQuestionView}
+  const body =
+    categories?.length == 0 ? (
+      <Box>
+        <UploadCategories />
+      </Box>
+    ) : (
       <div>
-        <Box
-          sx={{
-            display: "grid",
-            columnGap: "10px",
-            rowGap: "10px",
-            gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
-          }}
-        >
-          <div style={{ gridColumn: "span 3" }}>
-            <ManagePlayers
+        {categoryQuestionView}
+        <div>
+          <Box
+            sx={{
+              display: "grid",
+              columnGap: "10px",
+              rowGap: "10px",
+              gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
+            }}
+          >
+            <div style={{ gridColumn: "span 3" }}>
+              <ManagePlayers
+                players={players}
+                updatePlayers={setPlayers}
+                turnOrder={turnOrder}
+                updateTurnOrder={setTurnOrder}
+                pointIncrements={pointIncrements}
+                selectedPlayerId={selectedPlayerId}
+                onSelectPlayer={handleSelectPlayer}
+                onAddPoints={handleAddPoints}
+              />
+            </div>
+            <TurnOrder
               players={players}
               updatePlayers={setPlayers}
               turnOrder={turnOrder}
-              updateTurnOrder={setTurnOrder}
-              pointIncrements={pointIncrements}
-              selectedPlayerId={selectedPlayerId}
-              onSelectPlayer={handleSelectPlayer}
-              onAddPoints={handleAddPoints}
             />
-          </div>
-          <TurnOrder
-            players={players}
-            updatePlayers={setPlayers}
-            turnOrder={turnOrder}
-          />
-          <ScoreBoard players={players} />
-        </Box>
+            <ScoreBoard players={players} />
+          </Box>
+        </div>
       </div>
-    </div>
-  );
+    );
+
+  return <div>{body}</div>;
 };
